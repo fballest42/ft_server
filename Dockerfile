@@ -6,45 +6,47 @@
 #    By: fballest <fballest@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/08/13 10:35:01 by fballest          #+#    #+#              #
-#    Updated: 2020/08/13 10:35:01 by fballest         ###   ########.fr        #
+#    Updated: 2020/09/09 09:20:13 by fballest         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
+# 0.- OS DEFINITION
 FROM debian:buster
 
+# 00.- AUTHOR
 LABEL mantainer="Fernando Ballesteros  <fballest@student.42madrid.es>"
 
+# 1.- DEFINITION OF ARGUMENTS & ENVIROMENT VARIABLES TO BUILD THE IMAGES
 
-# Password for root user of mysql database
+# 1.1.- Mysql Root Password
 ARG MYSQL_ROOT_PASSWORD=mysql_password
 
-# Wordpress database configuration
+# 1.2.- Wordpress database
 ARG WORDPRESS_DATABASE=wordpress
 ARG WORDPRESS_DATABASE_USER=wordpress_database_admin
 ARG WORDPRESS_DATABASE_PASS=wordpress_database_pass
 
-# Wordpress configuration
+# 1.3.- Wordpress configuration
 ARG WORDPRESS_URL=localhost
 ARG WORDPRESS_SITE_TITLE=ft_server
 ARG WORDPRESS_ADMIN_NAME=wordpress_admin
 ARG WORDPRESS_ADMIN_EMAIL=ballesteros.fdo@gmail.com
 ARG WORDPRESS_ADMIN_PASSWORD=wordpress_password
 
-# PhpMyAdmin version
+# 1.4.- PhpMyAdmin version
 ARG PHPMYADMIN_VERSION=5.0.2
 
-# Password for the default user for PhpMyAdmin 'pma'
-
+# 1.5.- PhpMyAdmin PMA password
 ARG PMA_USER_DATABASE_PASSWORD=pma_user_database_password
 
-# Additional user for mysql database
-
+# 1.6.- User for mysql database
 ARG DATABASE_USER=database_admin
 ARG DATABASE_USER_PASSWORD=database_password
 
-# Set this to [any value] for autoindex on or keep it unset for autoindex off
+# 2.- AUTOINDEX: GIVE IT ANY POSITIVE VALUE FOR AUTOINDEX ON OR KEEP IT BLANK FOR AUTOINDEX OFF
 ENV NGINX_AUTOINDEX=
 
+# 3.- RUNING NGINX, MARIADB, PHP & SSL,
 RUN apt-get -qq update \
  && apt-get -qq upgrade \
  && apt-get -qq install \
@@ -55,12 +57,12 @@ RUN apt-get -qq update \
     openssl \
     wget
 
-# Copy nginx default config & autoindex from host to image
+# 4.- COPY NGINX DEFAULT CONFIG & AUTOINDEX TO IMAGE
 
 COPY srcs/nginx-default /etc/nginx/sites-available/default
 COPY srcs/nginx-autoindex /nginx-autoindex
 
-#   PHP & mysql and create database for Wordpress
+# 5.- PHP & MYSQL & CREATE DB FOR WORDPRESS
 
 RUN sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0;/g' etc/php/7.3/fpm/php.ini \
  && service mysql start \
@@ -75,7 +77,7 @@ RUN sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0;/g' etc/php/7.3/fpm/php.ini
  && service mysql stop \
  && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj '/CN=127.0.0.1'
 
-#  WordPress
+# 6.- RUNING WORDPRESS
 
 RUN wget -q https://wordpress.org/latest.tar.gz -P tmp \
  && tar xzf tmp/latest.tar.gz -C tmp \
@@ -98,14 +100,14 @@ RUN wget -q https://wordpress.org/latest.tar.gz -P tmp \
  && wp theme delete twentysixteen --allow-root --path=/var/www/html --quiet \
  && wp theme delete twentynineteen --allow-root --path=/var/www/html --quiet \
  && wp theme delete twentytwenty --allow-root --path=/var/www/html --quiet \
- && wp search-replace 'Just another WordPress site' 'Just another 42 Project' --allow-root --path=var/www/html --quiet \
- && wp search-replace 'Aloha world!' '42 Madrid' --allow-root --path=var/www/html --quiet \
- && wp search-replace 'A WordPress Commenter' 'A student' --allow-root --path=var/www/html --quiet \
- && wp search-replace 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' 'In progress ... :arrow:' --allow-root --path=var/www/html --quiet \
+ && wp search-replace 'Just another WordPress site' 'ft_server 42 Project' --allow-root --path=var/www/html --quiet \
+ && wp search-replace 'Aloha world!' '42Madrid' --allow-root --path=var/www/html --quiet \
+ && wp search-replace 'A WordPress Commenter' 'fballest' --allow-root --path=var/www/html --quiet \
+ && wp search-replace 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' 'Welldone ... :arrow:' --allow-root --path=var/www/html --quiet \
  && service mysql stop \
  && chown -R www-data:www-data /var/www/html/
 
-### PHPMyAdmin
+### RUNING PHPMYADMIN
 
 RUN wget -q https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz -P tmp \
  && tar xzf tmp/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz -C tmp \
@@ -124,14 +126,14 @@ RUN wget -q https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyA
  && service mysql stop \
  && ln -s /usr/share/phpmyadmin /var/www/html/ \
  && rm -rf tmp/* \
- && wget -q https://www.floornature.es/media/photos/1/15325/02_Superlimao_Escola-42_ph-Israel-Gollino_home_sez.jpg -O /var/www/html/wp-content/themes/twentyseventeen/assets/images/header.jpg
+ && wget -q https://www.42madrid.com/wp-content/uploads/2020/04/Campus-42-Madrid.jpg -O /var/www/html/wp-content/themes/twentyseventeen/assets/images/header.jpg
 
-### Set autoindex [on/off], start services and keep the container running
+### AUTOINDEX DETECTION, STARTING SERVICES AND KEEP IT RUNING
 
 CMD if [ -n "${NGINX_AUTOINDEX}" ] ; then cp /nginx-autoindex /etc/nginx/sites-available/default; fi \
  && service php7.3-fpm start && service mysql start && nginx && tail -f /dev/null
 
-### Ports that needs to be exposed at run time with -p [host port]:[container port]
+### PORTS EXPOSED AT RUN TIME WITH FLAGS: -p [host port]:[container port]
 
 EXPOSE 80
 EXPOSE 443
