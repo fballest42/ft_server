@@ -1,0 +1,51 @@
+
+# Server configuration
+
+
+
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+	
+	# Return https when http is used
+	return 301 https://$host$request_uri;
+}
+
+server {
+	# SSL configuration
+	
+	listen 443 ssl default_server;
+	listen [::]:443 ssl default_server;
+
+	ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
+	ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
+
+	# Use index.php as index
+	index index.php;
+
+	# Root directory for the server
+	root /var/www/html;
+
+	# Server name
+	server_name localhost;
+	
+	# Disable logging for images
+    	location ~* \.(css|gif|ico|jpeg|jpg|js|png)$ {
+	
+		expires max;
+		log_not_found off;
+    	}
+
+	location / {
+		# First attempt to serve request as file, then
+		# pass the control to index.php.
+		try_files $uri $uri/ /index.php$is_args$args;
+	}
+
+	# pass PHP scripts to FastCGI server
+	#
+	location ~ \.php$ {
+		include snippets/fastcgi-php.conf;
+		fastcgi_pass unix:/run/php/php7.3-fpm.sock;
+	}
+}
