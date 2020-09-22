@@ -6,7 +6,7 @@
 #    By: fballest <fballest@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/08/13 10:35:01 by fballest          #+#    #+#              #
-#    Updated: 2020/09/10 12:49:32 by fballest         ###   ########.fr        #
+#    Updated: 2020/09/09 09:20:13 by fballest         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -100,10 +100,10 @@ RUN wget -q https://wordpress.org/latest.tar.gz -P tmp \
  && wp theme delete twentysixteen --allow-root --path=/var/www/html --quiet \
  && wp theme delete twentynineteen --allow-root --path=/var/www/html --quiet \
  && wp theme delete twentytwenty --allow-root --path=/var/www/html --quiet \
- && wp search-replace 'Just another WordPress site' 'Cursus Project 42Madrid' --allow-root --path=var/www/html --quiet \
+ && wp search-replace 'Just another WordPress site' 'ft_server 42 Project' --allow-root --path=var/www/html --quiet \
  && wp search-replace 'Aloha world!' '42Madrid' --allow-root --path=var/www/html --quiet \
  && wp search-replace 'A WordPress Commenter' 'fballest' --allow-root --path=var/www/html --quiet \
- && wp search-replace 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' 'Wellcome to my ft_server project... ' --allow-root --path=var/www/html --quiet \
+ && wp search-replace 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' 'Welldone ... :arrow:' --allow-root --path=var/www/html --quiet \
  && service mysql stop \
  && chown -R www-data:www-data /var/www/html/
 
@@ -133,7 +133,7 @@ RUN wget -q https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyA
 CMD if [ -n "${NGINX_AUTOINDEX}" ] ; then cp /nginx-autoindex /etc/nginx/sites-available/default; fi \
  && service php7.3-fpm start && service mysql start && nginx && tail -f /dev/null
 
-### PORTS EXPOSED DO NOT FORGET TO USE FLAGS AT RUN TIME: -p [host port]:[container port]
+### PORTS EXPOSED AT RUN TIME WITH FLAGS: -p [host port]:[container port]
 
 EXPOSE 80
 EXPOSE 443
